@@ -1,4 +1,5 @@
 -- this is a script that creates a table with unique users
+-- id, email, name
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
