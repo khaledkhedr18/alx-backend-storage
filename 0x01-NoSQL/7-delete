@@ -1,2 +1,2 @@
 // a script that deletes all documents with a name to be matched
-db.school.delete({ name: 'Holberton school' }, { multi: true });
+db.school.delete({"name": "Holberton school"}, {multi: true})
