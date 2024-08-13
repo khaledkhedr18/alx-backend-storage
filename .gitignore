@@ -1,2 +1,4 @@
 mongodb_crashcourse/
 /trashtest/
+.mypy_cache/
+__pycache__/
