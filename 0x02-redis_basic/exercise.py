@@ -88,7 +88,8 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: callable = None) -> Union[str, bytes, int, float]:  # type: ignore
+    def get(self, key: str, fn: Callable = None
+            ) -> Union[str, bytes, int, float]:  # type: ignore
         """
         Retrieves data from the Redis database.
         Parameters:
@@ -100,9 +101,9 @@ class Cache:
         """
         value = self._redis.get(key)
         if value is None:
-            return None
+            return None  # type: ignore
         if fn is None:
-            return value
+            return value  # type: ignore
         return fn(value)
 
     def get_str(self, key: str) -> str:
@@ -113,7 +114,7 @@ class Cache:
         Returns:
             str: The retrieved string.
         """
-        return self.get(key, fn=lambda d: d.decode("utf-8"))
+        return self.get(key, fn=lambda d: d.decode("utf-8"))  # type: ignore
 
     def get_int(self, key: str) -> int:
         """
@@ -123,4 +124,4 @@ class Cache:
         Returns:
             int: The retrieved integer.
         """
-        return self.get(key, fn=int)
+        return self.get(key, fn=int)  # type: ignore
