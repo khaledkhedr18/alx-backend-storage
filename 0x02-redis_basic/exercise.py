@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''Task 0, 1, 2, 3, 4
+'''Task 0, 1, 2, 3,
 '''
 import functools
 import redis
@@ -9,9 +9,9 @@ from typing import Union, Callable
 
 def count_calls(method: Callable) -> Callable:
     """Counts how many times methods of the Cache class are called.
-
-    As a key, use the qualified name of method using the __qualname__ dunder method.
-    Create and return function that increments the count for that key every time the method is called
+    As a key, use the qualified name of method using __qualname__.
+    Create and return function
+    that increments the count for that key every time the method is called
     and returns the value returned by the original method.
     """
     @functools.wraps(method)
@@ -19,6 +19,20 @@ def count_calls(method: Callable) -> Callable:
         key = method.__qualname__
         self._redis.incr(key)
         return method(self, *args, **kwargs)
+    return wrapper
+
+
+def call_history(method: Callable) -> Callable:
+    """History of inputs and outputs for a particular function.
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        key_inputs = f"{method.__qualname__}:inputs"
+        key_outputs = f"{method.__qualname__}:outputs"
+        self._redis.rpush(key_inputs, str(args))
+        result = method(self, *args, **kwargs)
+        self._redis.rpush(key_outputs, str(result))
+        return result
     return wrapper
 
 
@@ -36,6 +50,7 @@ class Cache:
         self._redis.flushdb()
 
     @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Stores data in the Redis database.
@@ -53,7 +68,8 @@ class Cache:
         Retrieves data from the Redis database.
         Parameters:
             key (str): The key to retrieve data from.
-            fn (callable): An optional callable to convert the data to the desired type.
+            fn (callable): An optional callable to convert
+                            the data to the desired type.
         Returns:
             The retrieved data.
         """
