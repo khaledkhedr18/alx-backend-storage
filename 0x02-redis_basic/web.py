@@ -1,31 +1,38 @@
+#!/usr/bin/env python3
+'''A module with tools for request caching and tracking.
+'''
+import redis
 import requests
 from functools import wraps
 from typing import Callable
 
-def count_calls_and_cache(url: str, expiration_time: int) -> Callable:
-    """Counts how many times a particular URL was accessed and caches the result.
-    As a key, use the qualified name of the function using __qualname__.
-    Create and return function
-    that increments the count for that key every time the function is called
-    and returns the value returned by the original function.
-    """
-    def decorator(func: Callable) -> Callable:
-        @wraps(func)
-        def wrapper(url: str) -> str:
-            key = f"count:{url}"
-            cache_key = f"cache:{url}"
-            self._redis.incr(key)
-            cached_value = self._redis.get(cache_key)
-            if cached_value is not None:
-                return cached_value.decode("utf-8")
-            result = func(url)
-            self._redis.setex(cache_key, expiration_time, result)
-            return result
-        return wrapper
-    return decorator
 
-@count_calls_and_cache("{url}", 10)
+redis_store = redis.Redis()
+'''The module-level Redis instance.
+'''
+
+
+def data_cacher(method: Callable) -> Callable:
+    '''Caches the output of fetched data.
+    '''
+    @wraps(method)
+    def invoker(url) -> str:
+        '''The wrapper function for caching the output.
+        '''
+        redis_store.incr(f'count:{url}')
+        result = redis_store.get(f'result:{url}')
+        if result:
+            return result.decode('utf-8')
+        result = method(url)
+        redis_store.set(f'count:{url}', 0)
+        redis_store.setex(f'result:{url}', 10, result)
+        return result
+    return invoker
+
+
+@data_cacher
 def get_page(url: str) -> str:
-    """Gets the HTML content of a particular URL and returns it."""
-    response = requests.get(url)
-    return response.text
+    '''Returns the content of a URL after caching the request's response,
+    and tracking the request.
+    '''
+    return requests.get(url).text
