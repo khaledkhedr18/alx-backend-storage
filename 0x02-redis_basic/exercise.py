@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 '''Task 0, 1, 2, 3,
 '''
-import functools
+from functools import wraps
 import redis
 import uuid
-from typing import Union, Callable
+from typing import Union, Callable, Any
 
 
 def count_calls(method: Callable) -> Callable:
@@ -14,7 +14,7 @@ def count_calls(method: Callable) -> Callable:
     that increments the count for that key every time the method is called
     and returns the value returned by the original method.
     """
-    @functools.wraps(method)
+    @wraps(method)
     def wrapper(self, *args, **kwargs):
         key = method.__qualname__
         self._redis.incr(key)
@@ -25,8 +25,8 @@ def count_calls(method: Callable) -> Callable:
 def call_history(method: Callable) -> Callable:
     """History of inputs and outputs for a particular function.
     """
-    @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
+    @wraps(method)
+    def wrapper(self, *args, **kwargs) -> Any:
         key_inputs = f"{method.__qualname__}:inputs"
         key_outputs = f"{method.__qualname__}:outputs"
         self._redis.rpush(key_inputs, str(args))
@@ -62,7 +62,7 @@ def replay(fn: Callable) -> None:
 
 
 class Cache:
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initializes a new instance of the Cache class.
         This method creates a new Redis client and flushes the Redis database.
@@ -72,7 +72,7 @@ class Cache:
             None
         """
         self._redis = redis.Redis()
-        self._redis.flushdb()
+        self._redis.flushdb(True)
 
     @count_calls
     @call_history
@@ -88,7 +88,7 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: callable = None):  # type: ignore
+    def get(self, key: str, fn: callable = None) -> Union[str, bytes, int, float]:  # type: ignore
         """
         Retrieves data from the Redis database.
         Parameters:
@@ -105,7 +105,7 @@ class Cache:
             return value
         return fn(value)
 
-    def get_str(self, key: str):
+    def get_str(self, key: str) -> str:
         """
         Retrieves a string from the Redis database.
         Parameters:
@@ -115,7 +115,7 @@ class Cache:
         """
         return self.get(key, fn=lambda d: d.decode("utf-8"))
 
-    def get_int(self, key: str):
+    def get_int(self, key: str) -> int:
         """
         Retrieves an integer from the Redis database.
         Parameters:
