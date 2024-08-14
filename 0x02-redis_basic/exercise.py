@@ -41,7 +41,7 @@ def replay(fn: Callable) -> None:
     '''
     if fn is None or not hasattr(fn, '__self__'):
         return
-    redis_store = getattr(fn.__self__, '_redis', None) # type: ignore
+    redis_store = getattr(fn.__self__, '_redis', None)  # type: ignore
     if not isinstance(redis_store, redis.Redis):
         return
     fxn_name = fn.__qualname__
@@ -49,11 +49,11 @@ def replay(fn: Callable) -> None:
     out_key = '{}:outputs'.format(fxn_name)
     fxn_call_count = 0
     if redis_store.exists(fxn_name) != 0:
-        fxn_call_count = int(redis_store.get(fxn_name)) # type: ignore
+        fxn_call_count = int(redis_store.get(fxn_name))  # type: ignore
     print('{} was called {} times:'.format(fxn_name, fxn_call_count))
     fxn_inputs = redis_store.lrange(in_key, 0, -1)
     fxn_outputs = redis_store.lrange(out_key, 0, -1)
-    for fxn_input, fxn_output in zip(fxn_inputs, fxn_outputs): # type: ignore
+    for fxn_input, fxn_output in zip(fxn_inputs, fxn_outputs):  # type: ignore
         print('{}(*{}) -> {}'.format(
             fxn_name,
             fxn_input.decode("utf-8"),
@@ -88,7 +88,7 @@ class Cache:
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: callable = None): # type: ignore
+    def get(self, key: str, fn: callable = None):  # type: ignore
         """
         Retrieves data from the Redis database.
         Parameters:
