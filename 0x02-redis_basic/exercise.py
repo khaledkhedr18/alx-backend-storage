@@ -36,6 +36,21 @@ def call_history(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(method: Callable) -> None:
+    """Prints the history of calls for a particular function.
+    """
+    key_inputs = f"{method.__qualname__}:inputs"
+    key_outputs = f"{method.__qualname__}:outputs"
+
+    n_calls = int(method.__self__._redis.get(key_inputs))
+    inputs = method.__self__._redis.lrange(key_inputs, 0, n_calls-1)
+    outputs = method.__self__._redis.lrange(key_outputs, 0, n_calls-1)
+
+    print(f"{method.__qualname__} was called {n_calls} times:")
+    for input_, output in zip(inputs, outputs):
+        print(f"{method.__qualname__}{input_}) -> {output}")
+
+
 class Cache:
     def __init__(self):
         """
